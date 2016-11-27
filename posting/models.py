@@ -34,7 +34,6 @@ class TargetManager(models.Manager):
     def is_status_ok(self, status):
         status = status.lower()
         if any(word in FORBID for word in status.split()):
-            print(status)
             return False
         if len(status) < 3:
             return False

@@ -1,0 +1,9 @@
+celerybeat-schedule
+db.sqlite3
+*.pyc
+__pycache__
+migrations
+img/content/images
+img/content/results
+vk/private_data/access_tokens.py
+vk/private_data/test_settings.py

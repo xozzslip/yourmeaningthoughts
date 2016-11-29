@@ -9,7 +9,7 @@ MAX_PER_REQ = {
     "wall.get": 100,
     "groups.getById": 500,
     "wall.getComments": 100,
-    "groups.getMembers": 999,
+    "groups.getMembers": 1000,
     "users.get": 1000,
 }
 
@@ -24,9 +24,14 @@ class VkApi:
     def request(self, method, parameters):
         url = "https://api.vk.com/method/%s?%s&access_token=%s&v=%s"
         url_with_parameters = url % (method, parameters, self.access_token, self.v)
-        print(url_with_parameters)
-        response = requests.get(url_with_parameters, timeout=3)
+        while True:
+            try:
+                response = requests.get(url_with_parameters, timeout=3)
+                break
+            except requests.exceptions.ReadTimeout:
+                continue
         time.sleep(SLEEP)
+        print(url_with_parameters)
         return json.loads(response.text)
 
     @classmethod
@@ -62,28 +67,30 @@ class VkApi:
         message = response["error"]["error_msg"]
         return (code, message)
 
-    def get_type_request(self, method, parameters, count=None):
+    def get_type_request(self, method, parameters, count=None, initial_offset=0):
         result_list_of_items = []
+        total_count = self.get_count(method, parameters)
         if not count:
-            count = self.get_count(method, parameters)
+            count = total_count
         max_items_per_request = MAX_PER_REQ[method]
         parameters += "&count=%s" % min(max_items_per_request, count)
+        offset = initial_offset
         for i in range(math.ceil(count / max_items_per_request)):
-            offset = str(i * max_items_per_request)
+            offset += max_items_per_request
             parameters_with_offset = parameters + "&offset=%s" % offset
             response = self.request(method, parameters_with_offset)
             count, items = self.extract_response(response)
             result_list_of_items.extend(items)
-        return result_list_of_items
+        return total_count, result_list_of_items
 
     def post_type_request(self, method, parameters):
         response = self.request(method, parameters)
         count, items = self.extract_response(response)
-        return items
+        return count, items
 
-    def make_request(self, method, parameters, count=None):
+    def make_request(self, method, parameters, **kwargs):
         if method in MAX_PER_REQ:
-            response = self.get_type_request(method, parameters, count)
+            response = self.get_type_request(method, parameters, **kwargs)
         else:
             response = self.post_type_request(method, parameters)
         return response

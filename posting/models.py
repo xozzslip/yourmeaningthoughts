@@ -13,23 +13,27 @@ class TargetManager(models.Manager):
     @transaction.atomic
     def upload(self, domen, count=None):
         api = PublicApiCommands(access_token="", domen=domen)
-        items = api.get_members(count)
-        for p in range(math.ceil(len(items) / 300)):
-            user_ids = [user for user in items[300 * p: 300 * (p + 1)]]
-            users = api.get_users(user_ids)
-            for user in users:
-                if "status" not in user:
-                    continue
-                if not self.is_status_ok(user["status"]):
-                    continue
-                if not self.is_target_ok(user["sex"]):
-                    continue
-                try:
-                    Target(name=user["first_name"] + " " + user["last_name"],
-                           status=self.rewrite_status(user["status"]),
-                           vk_id=user["id"]).save()
-                except IntegrityError:
-                    continue
+        total_count, members = api.get_members(domen=domen, count=10)
+        initial_offset = math.ceil(total_count * 0.5)
+        members = api.get_members_extended(domen, count=count, initial_offset=initial_offset)
+        for user in members:
+            if "status" not in user:
+                continue
+            status = self.rewrite_status(user["status"])
+            if not self.is_status_ok(user["status"]):
+                continue
+            if not self.is_target_ok(user):
+                continue
+            try:
+                Target(name=user["first_name"] + " " + user["last_name"],
+                       status=status,
+                       vk_id=user["id"]).save()
+            except IntegrityError:
+                continue
+
+    def refresh(self, domen, count=None):
+        self.all().delete()
+        self.upload(domen, count=count)
 
     def is_status_ok(self, status):
         status = status.lower()
@@ -46,9 +50,13 @@ class TargetManager(models.Manager):
                 status_allowed_symbols += l
         return status_allowed_symbols
 
-    def is_target_ok(self, sex):
-        if sex == 2:
+    def is_target_ok(self, user):
+        if user['sex'] == 2:
             return False
+        if 'bdate' in user:
+            bdate = user['bdate'].split('.')
+            if len(bdate) == 3 and int(bdate[-1]) > 1992:
+                return False
         return True
 
 

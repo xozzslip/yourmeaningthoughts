@@ -14,11 +14,20 @@ class PublicApiCommands:
         self.domen = domen
         self.executable_commands = ExecutablePublicApiCommands(access_token, domen)
 
-    def get_members(self, count):
+    def get_members(self, domen, **kwargs):
         method = "groups.getMembers"
         params = "group_id=%s" % self.domen
-        items = self.connection.make_request(method, params, count)
-        return items
+        count, items = self.connection.make_request(method, params, **kwargs)
+        return count, items
+
+    def get_members_extended(self, domen, **kwargs):
+        count, members = self.get_members(domen, **kwargs)
+        chuncks = [members[i * 300: (i + 1) * 300] for i in range(math.ceil(len(members) / 300))]
+        all_users = []
+        for chunck in chuncks:
+            users = self.get_users(chunck)
+            all_users += users
+        return all_users
 
     def upload_picture(self, photo):
         method = "photos.getWallUploadServer"
@@ -37,20 +46,20 @@ class PublicApiCommands:
     def get_users(self, user_ids):
         method = "users.get"
         params = "fields=sex,bdate,status&user_ids=%s" % ",".join(list(map(str, user_ids)))
-        items = self.connection.make_request(method, params, len(user_ids))
+        count, items = self.connection.make_request(method, params, count=len(user_ids))
         return items
 
     def get_post_list(self, count):
         method = "wall.get"
         params = "owner_id=-%s" % self.domen
-        items = self.connection.make_request(method, params, count)
+        count, items = self.connection.make_request(method, params, count)
         return items
 
     def get_comments_form_post(self, post_id):
         method = "wall.getComments"
         params = "owner_id=-%s&need_likes=1" % self.domen
         parameters_with_post_id = params + "&post_id=%s" % post_id
-        items = self.connection.make_request(method, parameters_with_post_id)
+        count, items = self.connection.make_request(method, parameters_with_post_id)
         return items
 
     def get_comments_from_post_list(self, post_list):
@@ -59,7 +68,7 @@ class PublicApiCommands:
     def get_comments_from_post_list_not_exe(self, post_list):
         result_list_of_items = []
         for post in post_list:
-            items = self.get_comments_form_post(post["id"])
+            count, items = self.get_comments_form_post(post["id"])
             result_list_of_items.extend(items)
         return result_list_of_items
 

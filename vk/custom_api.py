@@ -32,7 +32,7 @@ class PublicApiCommands:
     def upload_picture(self, photo):
         method = "photos.getWallUploadServer"
         params = "group_id=%s" % self.domen
-        upload_url = self.connection.make_request(method, params)["upload_url"]
+        upload_url = self.connection.make_request(method, params)[1]["upload_url"]
 
         response = json.loads(requests.post(upload_url, files={"photo": photo}).text)
         method = "photos.saveWallPhoto"
@@ -40,7 +40,7 @@ class PublicApiCommands:
                                                              str(response["hash"]),
                                                              str(response["photo"]),
                                                              self.domen)
-        response = self.connection.make_request(method, params)
+        count, response = self.connection.make_request(method, params)
         return "photo" + str(response[0]["owner_id"]) + "_" + str(response[0]["id"])
 
     def get_users(self, user_ids):
@@ -78,7 +78,7 @@ class PublicApiCommands:
             self.domen,
             text,
             attachments)
-        post_id = self.connection.make_request(method, params)["post_id"]
+        post_id = self.connection.make_request(method, params)[1]["post_id"]
         return post_id
 
     def delete_post(self, post_id):
@@ -89,7 +89,7 @@ class PublicApiCommands:
     def create_comment(self, text, post_id):
         method = "wall.createComment"
         params = "owner_id=-%s&post_id=%s&message=%s" % (self.domen, post_id, text)
-        comment_id = self.connection.make_request(method, params)["comment_id"]
+        count, comment_id = self.connection.make_request(method, params)["comment_id"]
         return comment_id
 
     def delete_comments(self, comments_list):
@@ -164,7 +164,7 @@ class ExecutablePublicApiCommands:
             return comments_list;
         """ % (posts_ids, posts_dates, self.domen)
         params = "code=%s" % сode
-        responses_list = self.connection.make_request(method, params)
+        count, responses_list = self.connection.make_request(method, params)
         return self.responses_list_to_comments(responses_list)
 
     def delete_chunck_of_comments_from_comments_list(self, limited_comments_list):
@@ -184,7 +184,7 @@ class ExecutablePublicApiCommands:
             return responses;
         """ % (comments_ids_list, self.domen)
         params = "code=%s" % сode
-        responses_list = self.connection.make_request(method, params)
+        count, responses_list = self.connection.make_request(method, params)
         return responses_list
 
     def get_comments_from_post_list(self, post_list):

@@ -116,15 +116,15 @@ class Promo:
     @classmethod
     def caclulate_font_size(cls, text_length):
         if text_length > 300:
-            return 26
-        elif text_length > 200:
-            return 28
-        elif text_length > 100:
-            return 30
-        elif text_length > 50:
             return 32
-        else:
+        elif text_length > 200:
             return 34
+        elif text_length > 100:
+            return 36
+        elif text_length > 50:
+            return 38
+        else:
+            return 40
 
 
 def render(text, signature):

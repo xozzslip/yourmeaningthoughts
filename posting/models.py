@@ -85,4 +85,5 @@ class Community(models.Model):
         path = pil_image.save()
         with open(path, 'rb') as photo:
             attachment = self.api.upload_picture(photo=photo)
-        self.api.create_post(text="@id%s" % target.vk_id, attachments=attachment)
+        self.api.create_post(text="%s\n\n@id%s" % (target.status, target.vk_id),
+                             attachments=attachment)

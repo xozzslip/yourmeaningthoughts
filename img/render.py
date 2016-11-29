@@ -86,7 +86,7 @@ class Promo:
         SIG_OFFSET = 5
         width, height = self.image.size
         draw = ImageDraw.Draw(self.image)
-        fnt = ImageFont.truetype(font_type, 21)
+        fnt = ImageFont.truetype(font_type, 28)
         textsize = draw.multiline_textsize(text, font=fnt)
         rb_corner = (width - self.CORNER_OFFSET, height - self.CORNER_OFFSET)
         signature_pos = (rb_corner[0] - textsize[0] - SIG_OFFSET,
@@ -132,6 +132,7 @@ def render(text, signature):
     IMAGES_PATH = 'img/content/images/'
     os.listdir(FONTS_PATH)
     font_type = FONTS_PATH + random.choice(os.listdir(FONTS_PATH))
+    print(font_type)
     background_image = IMAGES_PATH + random.choice(os.listdir(IMAGES_PATH))
     p = Promo(background_image)
     p.cut()

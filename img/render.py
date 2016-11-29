@@ -4,8 +4,8 @@ from PIL import Image, ImageFilter, ImageDraw, ImageFont
 
 
 class Promo:
-    RATIO = 16 / 9
-    HEIGHT = 500
+    RATIO = 1.3
+    HEIGHT = 600
     WIDTH = int(HEIGHT * RATIO)
     CORNER_OFFSET = 20
 

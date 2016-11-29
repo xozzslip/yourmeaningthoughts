@@ -37,7 +37,7 @@ class TargetManager(models.Manager):
 
     def is_status_ok(self, status):
         status = status.lower()
-        if any(word in FORBID for word in status.split()):
+        if any(forbid in status for forbid in FORBID):
             return False
         if len(status) < 3:
             return False
@@ -45,8 +45,8 @@ class TargetManager(models.Manager):
 
     def rewrite_status(self, status):
         status_allowed_symbols = ""
-        for l in list(status.lower()):
-            if l in ALLOWED_LETTERS:
+        for l in list(status):
+            if l.lower() in ALLOWED_LETTERS:
                 status_allowed_symbols += l
         return status_allowed_symbols
 
@@ -55,7 +55,7 @@ class TargetManager(models.Manager):
             return False
         if 'bdate' in user:
             bdate = user['bdate'].split('.')
-            if len(bdate) == 3 and int(bdate[-1]) > 1992:
+            if len(bdate) == 3 and int(bdate[-1]) < 1993:
                 return False
         return True
 
